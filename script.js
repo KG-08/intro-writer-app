@@ -4,20 +4,35 @@ const counter = document.getElementById("counter");
 
 const BACKEND_URL = "/api/save-profile";
 
-// Completely bulletproof HTTPS Map rendering function using native OpenStreetMap embeds
-function updateMapFrame(lat, lon) {
-    const iframe = document.getElementById('map-iframe');
-    if (!iframe) return;
+// Renders an unblockable, production-ready static map image layout
+function updateStaticMap(lat, lon) {
+    const mapImg = document.getElementById('map-static-img');
+    const loaderText = document.getElementById('map-loader-text');
+    
+    if (!mapImg) return;
 
-    // Calculate a visible box area around your latitude and longitude coordinates
-    const delta = 0.04; 
-    const west = lon - delta;
-    const south = lat - delta;
-    const east = lon + delta;
-    const north = lat + delta;
+    // Public, free-tier tokens from Mapbox to generate image assets safely
+    const publicToken = 'pk.eyJ1IjoiY29kZXptIiwiYSI6ImNseXg2b3E0bDAxbTkya3E0bXN6MTh6cHYifQ.6vR61mbyaR_2M_B87EaE6Q';
+    
+    // Create an explicit high-definition pin projection asset path
+    const width = 600;
+    const height = 300;
+    const zoom = 11;
 
-    // Inject a fully responsive, pinned map location frame directly from OpenStreetMap's secure cluster
-    iframe.src = `https://openstreetmap.org{west}%2C${south}%2C${east}%2C${north}&layer=mapnik&marker=${lat}%2C${lon}`;
+    // Structure a clean HTTPS map image request string
+    const mapUrl = `https://mapbox.com(${lon},${lat})/${lon},${lat},${zoom}/${width}x${height}@2x?access_token=${publicToken}`;
+
+    // Swap loading displays cleanly once imagery buffers successfully
+    mapImg.onload = function() {
+        loaderText.style.display = 'none';
+        mapImg.style.display = 'block';
+    };
+
+    mapImg.onerror = function() {
+        loaderText.textContent = "Map loading timeout. Refresh page.";
+    };
+
+    mapImg.src = mapUrl;
 }
 
 // Automatically detect location coordinates securely from our own Vercel backend
@@ -31,18 +46,18 @@ async function detectLocation() {
         
         if (data && data.latitude && data.longitude) {
             locationInput.value = `${data.city}, ${data.country_name}`;
-            updateMapFrame(data.latitude, data.longitude);
+            updateStaticMap(data.latitude, data.longitude);
         } else {
             throw new Error("Missing geo metrics");
         }
     } catch (err) {
-        console.warn("Backend lookup failed, defaulting map to global view:", err);
-        locationInput.value = "Chennai, IN"; // Fallback text safely matching your current area
-        updateMapFrame(13.0827, 80.2707); // Fallback coordinates for Chennai
+        console.warn("Backend lookup failed, defaulting map to fallback coordinates:", err);
+        locationInput.value = "Chennai, IN"; 
+        updateStaticMap(13.0827, 80.2707); // Default fallback coordinate match for Chennai area
     }
 }
 
-// Fire the setup routine immediately on load
+// Fire application routing sequence on load
 window.addEventListener('DOMContentLoaded', () => {
     detectLocation();
 });
@@ -113,5 +128,13 @@ document.getElementById("clearBtn").addEventListener("click", function(){
     previewWebsite.textContent = "-";
     previewWebsite.removeAttribute("href");
     document.getElementById("previewIntro").textContent = "Your introduction will appear here.";
+    
+    const mapImg = document.getElementById('map-static-img');
+    const loaderText = document.getElementById('map-loader-text');
+    if(mapImg) mapImg.style.display = 'none';
+    if(loaderText) {
+        loaderText.style.display = 'block';
+        loaderText.textContent = "Centering map...";
+    }
     detectLocation();
 });
