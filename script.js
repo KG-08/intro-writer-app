@@ -7,8 +7,7 @@ const BACKEND_URL = "/api/save-profile";
 let map;
 let marker;
 
-// Initialize map with robust styling enforcement
-function initializeMap(lat = 0, lon = 0, zoomLevel = 2) {
+function initializeMap(lat = 20, lon = 0, zoomLevel = 2) {
     try {
         if (!map) {
             map = L.map('map').setView([lat, lon], zoomLevel);
@@ -21,48 +20,42 @@ function initializeMap(lat = 0, lon = 0, zoomLevel = 2) {
 
         if (marker) {
             marker.setLatLng([lat, lon]);
-        } else if (lat !== 0 || lon !== 0) {
+        } else if (lat !== 20 || lon !== 0) {
             marker = L.marker([lat, lon]).addTo(map);
         }
 
-        // Force tile rendering across multiple intervals to fix race conditions
-        setTimeout(() => { map.invalidateSize(); }, 100);
-        setTimeout(() => { map.invalidateSize(); }, 500);
-        setTimeout(() => { map.invalidateSize(); }, 1000);
+        // Periodic sizing adjustments to prevent gray rendering bugs
+        setTimeout(() => { map.invalidateSize(); }, 200);
+        setTimeout(() => { map.invalidateSize(); }, 600);
     } catch (e) {
-        console.error("Leaflet initialization failed:", e);
+        console.error("Leaflet initiation failed:", e);
     }
 }
 
-// Automatically detect location coordinates securely over HTTPS
+// Automatically detect location coordinates securely from our own Vercel backend
 async function detectLocation() {
     const locationInput = document.getElementById("location");
     try {
-        const res = await fetch("https://ipapi.co");
-        
-        // Handle network blockages or bad status codes gracefully
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        // Hit our internal serverless function (Cannot be blocked by standard ad-blockers)
+        const res = await fetch(BACKEND_URL);
+        if (!res.ok) throw new Error("Backend lookup returned bad status");
         
         const data = await res.json();
         
-        if(data && !data.error && data.latitude && data.longitude) {
-            locationInput.value = `${data.city || 'Unknown City'}, ${data.country_name || 'Unknown Country'}`;
-            const latitude = parseFloat(data.latitude);
-            const longitude = parseFloat(data.longitude);
-            initializeMap(latitude, longitude, 11);
+        if (data && data.latitude && data.longitude) {
+            locationInput.value = `${data.city}, ${data.country_name}`;
+            initializeMap(data.latitude, data.longitude, 10);
         } else {
-            throw new Error("Invalid data structure received from API");
+            throw new Error("Missing geo metrics");
         }
     } catch (err) {
-        console.warn("Location fetch blocked or failed. Using fallback map grid view:", err);
-        locationInput.value = "Location blocked by browser / unavailable";
-        
-        // 👈 FALLBACK: Force map initialization at global coordinates [0, 0] if API fails
+        console.warn("Backend lookup failed, defaulting map to global view:", err);
+        locationInput.value = "Location parameters unavailable";
         initializeMap(20, 0, 2); 
     }
 }
 
-// Force the initial layout map to drop immediately on page load
+// Render fallback map structure on load
 initializeMap(20, 0, 2);
 detectLocation();
 
