@@ -24,9 +24,20 @@ function initializeMap(lat = 20, lon = 0, zoomLevel = 2) {
             marker = L.marker([lat, lon]).addTo(map);
         }
 
-        // Periodic sizing adjustments to prevent gray rendering bugs
-        setTimeout(() => { map.invalidateSize(); }, 200);
-        setTimeout(() => { map.invalidateSize(); }, 600);
+        // Dispatches a window resize event to force tile layout renders
+        setTimeout(() => { 
+            if (map) {
+                map.invalidateSize(); 
+                window.dispatchEvent(new Event('resize')); 
+            }
+        }, 300);
+        
+        setTimeout(() => { 
+            if (map) {
+                map.invalidateSize(); 
+            }
+        }, 800);
+
     } catch (e) {
         console.error("Leaflet initiation failed:", e);
     }
@@ -36,7 +47,6 @@ function initializeMap(lat = 20, lon = 0, zoomLevel = 2) {
 async function detectLocation() {
     const locationInput = document.getElementById("location");
     try {
-        // Hit our internal serverless function (Cannot be blocked by standard ad-blockers)
         const res = await fetch(BACKEND_URL);
         if (!res.ok) throw new Error("Backend lookup returned bad status");
         
