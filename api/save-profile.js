@@ -20,6 +20,22 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
+    // 👇 NEW FEATURE: Return location straight from Vercel's server logs securely
+    if (req.method === 'GET') {
+        // Extract geographical details directly from Vercel edge headers
+        const city = decodeURIComponent(req.headers['x-vercel-ip-city'] || 'Unknown City');
+        const country = decodeURIComponent(req.headers['x-vercel-ip-country'] || 'Unknown Country');
+        const latitude = parseFloat(req.headers['x-vercel-ip-latitude'] || '20.0');
+        const longitude = parseFloat(req.headers['x-vercel-ip-longitude'] || '0.0');
+
+        return res.status(200).json({
+            city: city,
+            country_name: country,
+            latitude: latitude,
+            longitude: longitude
+        });
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
