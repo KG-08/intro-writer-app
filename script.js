@@ -4,32 +4,25 @@ const counter = document.getElementById("counter");
 
 const BACKEND_URL = "/api/save-profile";
 
-// Renders an unblockable, production-ready static map image layout
+// Renders an unblockable, token-free static map image from OpenStreetMap
 function updateStaticMap(lat, lon) {
     const mapImg = document.getElementById('map-static-img');
     const loaderText = document.getElementById('map-loader-text');
     
     if (!mapImg) return;
 
-    // Public, free-tier tokens from Mapbox to generate image assets safely
-    const publicToken = 'pk.eyJ1IjoiY29kZXptIiwiYSI6ImNseXg2b3E0bDAxbTkya3E0bXN6MTh6cHYifQ.6vR61mbyaR_2M_B87EaE6Q';
-    
-    // Create an explicit high-definition pin projection asset path
-    const width = 600;
-    const height = 300;
-    const zoom = 11;
+    // Use OpenStreetMap's public, free static image engine
+    // Parameters: center coordinates, zoom level (13), size (600x300), and a red map pin marker
+    const mapUrl = `https://openstreetmap.de{lat},${lon}&zoom=13&size=600x300&maptype=mapnik&markers=${lat},${lon},red-pushpin`;
 
-    // Structure a clean HTTPS map image request string
-    const mapUrl = `https://mapbox.com(${lon},${lat})/${lon},${lat},${zoom}/${width}x${height}@2x?access_token=${publicToken}`;
-
-    // Swap loading displays cleanly once imagery buffers successfully
+    // Swap loading text cleanly once imagery registers successfully
     mapImg.onload = function() {
         loaderText.style.display = 'none';
         mapImg.style.display = 'block';
     };
 
     mapImg.onerror = function() {
-        loaderText.textContent = "Map loading timeout. Refresh page.";
+        loaderText.textContent = "Map engine connection failed. Please check network restrictions.";
     };
 
     mapImg.src = mapUrl;
