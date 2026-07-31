@@ -39,13 +39,16 @@
     </div>
 
     <!-- Dynamic Live Map Container -->
+        <!-- Dynamic Live Map Container -->
     <div class="container">
         <h2>Residence Map Location</h2>
-        <!-- ⚠️ We switched this to an iframe map to guarantee it loads without needing Leaflet libraries -->
-        <div id="map-frame-wrapper">
-            <iframe id="map-iframe" width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="about:blank"></iframe>
+        <div id="map-image-wrapper">
+            <!-- 📁 This replaces the iframe with a lightweight image tag -->
+            <img id="map-static-img" src="" alt="Loading map positioning..." style="width:100%; height:100%; object-fit:cover; display:none;">
+            <div id="map-loader-text" style="padding: 20px; color: #666; text-align: center;">Centering map...</div>
         </div>
     </div>
+
 
     <div class="preview">
         <h2>Preview</h2>
