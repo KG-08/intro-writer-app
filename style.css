@@ -22,8 +22,8 @@ body {
     margin-bottom: 30px;
 }
 
-/* Map Image Box Container Configuration */
-#map-image-wrapper {
+/* Replace your map block styles entirely with this setup */
+#map-frame-wrapper {
     width: 100%;
     height: 300px;
     border-radius: 6px;
@@ -35,6 +35,11 @@ body {
     align-items: center;
     justify-content: center;
 }
+#map-iframe {
+    width: 100%;
+    height: 100%;
+}
+
 
 h1, h2, p { 
     margin-bottom: 15px; 
