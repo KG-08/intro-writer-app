@@ -4,63 +4,66 @@ const counter = document.getElementById("counter");
 
 const BACKEND_URL = "/api/save-profile";
 
-// Map pointers to track dynamic instance changes
 let map;
 let marker;
 
-// Initialize an empty layout map centered on the equator
-// Initialize an empty layout map centered on the equator
+// Initialize map with robust styling enforcement
 function initializeMap(lat = 0, lon = 0, zoomLevel = 2) {
-    if (!map) {
-        map = L.map('map').setView([lat, lon], zoomLevel);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-    } else {
-        map.setView([lat, lon], zoomLevel);
-    }
-
-    // Refresh marker placement smoothly
-    if (marker) {
-        marker.setLatLng([lat, lon]);
-    } else if (lat !== 0 || lon !== 0) {
-        marker = L.marker([lat, lon]).addTo(map);
-    }
-
-    setTimeout(() => {
-        if (map) {
-            map.invalidateSize();
+    try {
+        if (!map) {
+            map = L.map('map').setView([lat, lon], zoomLevel);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        } else {
+            map.setView([lat, lon], zoomLevel);
         }
-    }, 200); 
-}
 
+        if (marker) {
+            marker.setLatLng([lat, lon]);
+        } else if (lat !== 0 || lon !== 0) {
+            marker = L.marker([lat, lon]).addTo(map);
+        }
+
+        // Force tile rendering across multiple intervals to fix race conditions
+        setTimeout(() => { map.invalidateSize(); }, 100);
+        setTimeout(() => { map.invalidateSize(); }, 500);
+        setTimeout(() => { map.invalidateSize(); }, 1000);
+    } catch (e) {
+        console.error("Leaflet initialization failed:", e);
+    }
+}
 
 // Automatically detect location coordinates securely over HTTPS
 async function detectLocation() {
     const locationInput = document.getElementById("location");
     try {
         const res = await fetch("https://ipapi.co");
+        
+        // Handle network blockages or bad status codes gracefully
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        
         const data = await res.json();
         
-        if(data && !data.error) {
-            locationInput.value = `${data.city}, ${data.country_name}`;
-            // Extract coordinates to plot OpenStreetMap marker automatically
+        if(data && !data.error && data.latitude && data.longitude) {
+            locationInput.value = `${data.city || 'Unknown City'}, ${data.country_name || 'Unknown Country'}`;
             const latitude = parseFloat(data.latitude);
             const longitude = parseFloat(data.longitude);
             initializeMap(latitude, longitude, 11);
         } else {
-            locationInput.value = "Location unavailable";
-            initializeMap(0, 0, 2);
+            throw new Error("Invalid data structure received from API");
         }
     } catch (err) {
-        console.error("Error fetching location:", err);
-        locationInput.value = "Failed to detect location";
-        initializeMap(0, 0, 2);
+        console.warn("Location fetch blocked or failed. Using fallback map grid view:", err);
+        locationInput.value = "Location blocked by browser / unavailable";
+        
+        // 👈 FALLBACK: Force map initialization at global coordinates [0, 0] if API fails
+        initializeMap(20, 0, 2); 
     }
 }
 
-// Draw base elements immediately on load
-initializeMap(0, 0, 2);
+// Force the initial layout map to drop immediately on page load
+initializeMap(20, 0, 2);
 detectLocation();
 
 intro.addEventListener("input", function(){
@@ -130,7 +133,6 @@ document.getElementById("clearBtn").addEventListener("click", function(){
     previewWebsite.removeAttribute("href");
     document.getElementById("previewIntro").textContent = "Your introduction will appear here.";
     
-    // Clear out map marker positioning metrics 
     if (marker) {
         map.removeLayer(marker);
         marker = null;
