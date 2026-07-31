@@ -38,16 +38,16 @@
         </form>
     </div>
 
-    <!-- Dynamic Live Map Container -->
         <!-- Dynamic Live Map Container -->
     <div class="container">
         <h2>Residence Map Location</h2>
-        <div id="map-image-wrapper">
-            <!-- 📁 This replaces the iframe with a lightweight image tag -->
-            <img id="map-static-img" src="" alt="Loading map positioning..." style="width:100%; height:100%; object-fit:cover; display:none;">
-            <div id="map-loader-text" style="padding: 20px; color: #666; text-align: center;">Centering map...</div>
+        <div id="map-frame-wrapper">
+            <!-- 🌐 This uses Google's standard secure map search framework -->
+            <iframe id="map-iframe" width="100%" height="300" frameborder="0" style="border:0; display:none;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <div id="map-loader-text" style="padding: 20px; color: #666; text-align: center;">Centering map frames...</div>
         </div>
     </div>
+
 
 
     <div class="preview">
