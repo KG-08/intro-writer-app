@@ -4,22 +4,12 @@ const counter = document.getElementById("counter");
 
 const BACKEND_URL = "/api/save-profile";
 
-// Renders an unblockable, token-free geographic map overview photo card
+// Safely updates the pure CSS geolocation radar frame text
 function renderMapImage(locationText) {
-    const mapImg = document.getElementById('map-static-img');
-    if (!mapImg) return;
-
-    // Clean up location query text string metrics safely
-    const safeText = encodeURIComponent(locationText);
-
-    // Pulls an unblockable, clean map asset image matching your specific city area
-    const mapUrl = `https://yahoo.com{safeText}+map+location+minimalist`;
-    
-    // Fallback directly to an unblockable global geographic mapping baseline image
-    mapImg.src = `https://picsum.photos`; 
-    
-    // If you want a clean minimalist graphic layout matching your area, bind it here:
-    mapImg.src = `https://geoapify.com`;
+    const label = document.getElementById('map-geo-label');
+    if (label) {
+        label.textContent = locationText;
+    }
 }
 
 // Automatically detect location coordinates securely from our own Vercel backend
@@ -39,7 +29,7 @@ async function detectLocation() {
             throw new Error("Missing geo location text metrics");
         }
     } catch (err) {
-        console.warn("Backend lookup failed, defaulting map to fallback coordinates:", err);
+        console.warn("Backend lookup failed, defaulting map to fallback location:", err);
         locationInput.value = "Chennai, IN"; 
         renderMapImage("Chennai, IN"); 
     }
