@@ -9,6 +9,7 @@ let map;
 let marker;
 
 // Initialize an empty layout map centered on the equator
+// Initialize an empty layout map centered on the equator
 function initializeMap(lat = 0, lon = 0, zoomLevel = 2) {
     if (!map) {
         map = L.map('map').setView([lat, lon], zoomLevel);
@@ -25,7 +26,14 @@ function initializeMap(lat = 0, lon = 0, zoomLevel = 2) {
     } else if (lat !== 0 || lon !== 0) {
         marker = L.marker([lat, lon]).addTo(map);
     }
+
+    setTimeout(() => {
+        if (map) {
+            map.invalidateSize();
+        }
+    }, 200); 
 }
+
 
 // Automatically detect location coordinates securely over HTTPS
 async function detectLocation() {
