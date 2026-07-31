@@ -8,7 +8,20 @@ let map;
 let marker;
 
 function initializeMap(lat = 20, lon = 0, zoomLevel = 2) {
+    // 👈 Check if Leaflet is actually loaded in the browser yet
+    if (typeof L === 'undefined') {
+        console.warn("Leaflet library not loaded yet. Retrying in 200ms...");
+        setTimeout(() => initializeMap(lat, lon, zoomLevel), 200);
+        return;
+    }
+
     try {
+        const mapContainer = document.getElementById('map');
+        if (!mapContainer) {
+            console.warn("Map DOM container element not found yet.");
+            return;
+        }
+
         if (!map) {
             map = L.map('map').setView([lat, lon], zoomLevel);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -24,24 +37,44 @@ function initializeMap(lat = 20, lon = 0, zoomLevel = 2) {
             marker = L.marker([lat, lon]).addTo(map);
         }
 
-        // Dispatches a window resize event to force tile layout renders
-        setTimeout(() => { 
-            if (map) {
-                map.invalidateSize(); 
-                window.dispatchEvent(new Event('resize')); 
-            }
-        }, 300);
-        
-        setTimeout(() => { 
-            if (map) {
-                map.invalidateSize(); 
-            }
-        }, 800);
+        // Multiple sizing safety intervals to force tiles onto the screen
+        setTimeout(() => { if (map) map.invalidateSize(); }, 100);
+        setTimeout(() => { if (map) map.invalidateSize(); }, 400);
+        setTimeout(() => { if (map) map.invalidateSize(); window.dispatchEvent(new Event('resize')); }, 800);
 
     } catch (e) {
-        console.error("Leaflet initiation failed:", e);
+        console.error("Leaflet initiation failed entirely:", e);
     }
 }
+
+async function detectLocation() {
+    const locationInput = document.getElementById("location");
+    try {
+        const res = await fetch(BACKEND_URL);
+        if (!res.ok) throw new Error("Backend lookup returned bad status");
+        
+        const data = await res.json();
+        
+        if (data && data.latitude && data.longitude) {
+            locationInput.value = `${data.city}, ${data.country_name}`;
+            initializeMap(data.latitude, data.longitude, 10);
+        } else {
+            throw new Error("Missing geo metrics");
+        }
+    } catch (err) {
+        console.warn("Backend lookup failed, defaulting map to global view:", err);
+        locationInput.value = "Location parameters unavailable";
+        initializeMap(20, 0, 2); 
+    }
+}
+
+// 👈 CRUCIAL CHANGE: Safely wait until the browser window is completely loaded before starting
+window.addEventListener('load', () => {
+    initializeMap(20, 0, 2);
+    detectLocation();
+});
+
+// ... Keep the rest of your script.js file (the event listeners for previewBtn and clearBtn) exactly the same ...
 
 // Automatically detect location coordinates securely from our own Vercel backend
 async function detectLocation() {
