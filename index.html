@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intro Writer with Vercel Serverless</title>
+    <title>Intro Writer with Vercel & MongoDB</title>
+    
+    <!-- 1. Leaflet Map Style CDN -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,23 +16,34 @@
         <h1>Intro Writer</h1>
         <p>Create a short introduction about yourself.</p>
 
-        <label for="name">Name</label>
-        <input type="text" id="name" placeholder="John Doe">
+        <form id="profileForm" onsubmit="return false;">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="John Doe">
 
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="john@example.com">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="john@example.com">
 
-        <label for="website">Portfolio / Website</label>
-        <input type="url" id="website" placeholder="https://myportfolio.com">
+            <label for="website">Portfolio / Website</label>
+            <input type="url" id="website" placeholder="https://example.com">
 
-        <label for="intro">Your Introduction</label>
-        <textarea id="intro" maxlength="250" placeholder="Tell us about yourself..."></textarea>
-        <div id="counter">250 characters remaining</div>
+            <label for="location">Detected Residence Location</label>
+            <input type="text" id="location" placeholder="Detecting location..." readonly>
 
-        <div class="buttons">
-            <button id="previewBtn">Generate Preview & Save</button>
-            <button id="clearBtn" class="secondary">Clear</button>
-        </div>
+            <label for="intro">Your Introduction</label>
+            <textarea id="intro" maxlength="250" placeholder="Tell us about yourself..."></textarea>
+            <div id="counter">250 characters remaining</div>
+
+            <div class="buttons">
+                <button type="button" id="previewBtn">Generate Preview & Save</button>
+                <button type="button" id="clearBtn" class="secondary">Clear</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 2. Dynamic Live Map Container added right above Preview -->
+    <div class="container">
+        <h2>Residence Map Location</h2>
+        <div id="map"></div>
     </div>
 
     <div class="preview">
@@ -36,10 +51,13 @@
         <p><strong>Name:</strong> <span id="previewName">-</span></p>
         <p><strong>Email:</strong> <span id="previewEmail">-</span></p>
         <p><strong>Website:</strong> <a id="previewWebsite" target="_blank">-</a></p>
-        <strong>Introduction:</strong>
+        <p><strong>Location:</strong> <span id="previewLocation">-</span></p>
+        <p><strong>Introduction:</strong></p>
         <div id="previewIntro" class="introBox">Your introduction will appear here.</div>
     </div>
 
+    <!-- 3. Leaflet Map Engine JavaScript CDN (Must sit above script.js) -->
+    <script src="https://unpkg.com"></script>
     <script src="script.js"></script>
 </body>
 </html>
