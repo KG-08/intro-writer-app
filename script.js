@@ -4,28 +4,25 @@ const counter = document.getElementById("counter");
 
 const BACKEND_URL = "/api/save-profile";
 
-// Renders an unblockable, token-free static map image from OpenStreetMap
-function updateStaticMap(lat, lon) {
-    const mapImg = document.getElementById('map-static-img');
+// Triggers an unblockable native Google Maps interface frame using text queries
+function updateEmbedMap(locationText) {
+    const iframe = document.getElementById('map-iframe');
     const loaderText = document.getElementById('map-loader-text');
     
-    if (!mapImg) return;
+    if (!iframe) return;
 
-    // Use OpenStreetMap's public, free static image engine
-    // Parameters: center coordinates, zoom level (13), size (600x300), and a red map pin marker
-    const mapUrl = `https://openstreetmap.de{lat},${lon}&zoom=13&size=600x300&maptype=mapnik&markers=${lat},${lon},red-pushpin`;
+    // Format the city text safely for standard web URL queries
+    const safeQuery = encodeURIComponent(locationText);
+    
+    // Core structural link mapping onto Google's unblockable framework
+    const mapUrl = `https://google.com{safeQuery}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
 
-    // Swap loading text cleanly once imagery registers successfully
-    mapImg.onload = function() {
-        loaderText.style.display = 'none';
-        mapImg.style.display = 'block';
+    iframe.onload = function() {
+        if(loaderText) loaderText.style.display = 'none';
+        iframe.style.display = 'block';
     };
 
-    mapImg.onerror = function() {
-        loaderText.textContent = "Map engine connection failed. Please check network restrictions.";
-    };
-
-    mapImg.src = mapUrl;
+    iframe.src = mapUrl;
 }
 
 // Automatically detect location coordinates securely from our own Vercel backend
@@ -37,16 +34,17 @@ async function detectLocation() {
         
         const data = await res.json();
         
-        if (data && data.latitude && data.longitude) {
-            locationInput.value = `${data.city}, ${data.country_name}`;
-            updateStaticMap(data.latitude, data.longitude);
+        if (data && data.city) {
+            const fullLocation = `${data.city}, ${data.country_name || ''}`;
+            locationInput.value = fullLocation;
+            updateEmbedMap(fullLocation);
         } else {
-            throw new Error("Missing geo metrics");
+            throw new Error("Missing geo location text metrics");
         }
     } catch (err) {
         console.warn("Backend lookup failed, defaulting map to fallback coordinates:", err);
         locationInput.value = "Chennai, IN"; 
-        updateStaticMap(13.0827, 80.2707); // Default fallback coordinate match for Chennai area
+        updateEmbedMap("Chennai, IN"); 
     }
 }
 
@@ -122,12 +120,12 @@ document.getElementById("clearBtn").addEventListener("click", function(){
     previewWebsite.removeAttribute("href");
     document.getElementById("previewIntro").textContent = "Your introduction will appear here.";
     
-    const mapImg = document.getElementById('map-static-img');
+    const iframe = document.getElementById('map-iframe');
     const loaderText = document.getElementById('map-loader-text');
-    if(mapImg) mapImg.style.display = 'none';
+    if(iframe) iframe.style.display = 'none';
     if(loaderText) {
         loaderText.style.display = 'block';
-        loaderText.textContent = "Centering map...";
+        loaderText.textContent = "Centering map frames...";
     }
     detectLocation();
 });
